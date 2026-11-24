@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "authsvc"
+version = "0.1.0"
+description = "Authentication service: scrypt hashing, server-side sessions, CSRF, race-free throttling, resets and TOTP 2FA"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "Ahmad Kaiss"}]
+dependencies = ["flask>=3.0", "cryptography>=41"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["authsvc"]
+
+[tool.setuptools.package-data]
+authsvc = ["common_passwords.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+markers = ["slow: timing and concurrency tests (run by default)"]
