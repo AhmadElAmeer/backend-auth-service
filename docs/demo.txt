@@ -1,0 +1,54 @@
+
+POST /register {"username": "ahmad", "email": "ahmad@example.com", "password": "Password2024!"}
+  → 400 {"error": "weak_password", "message": "Password is a commonly used password.", "problems": ["is a commonly used password"]}
+
+POST /register {"username": "ahmad", "email": "ahmad@example.com", "password": "plum tractor violet 1987"}
+  → 201 {"id": 1}
+
+POST /login {"username": "ahmad", "password": "wrong guess"}
+  → 401 {"error": "invalid_credentials", "message": "Incorrect username or password."}
+
+POST /login {"username": "nobody", "password": "wrong guess"}
+  → 401 {"error": "invalid_credentials", "message": "Incorrect username or password."}
+
+POST /login {"username": "ahmad", "password": "plum tractor violet 1987"}
+  → 200 {"csrf_token": "6ZzIese_GKB3…", "session": "f49a57410e8d"}
+
+GET /me
+  → 200 {"email": "ahmad@example.com", "id": 1, "session": "f49a57410e8d", "username": "ahmad"}
+
+(without the X-CSRF-Token header:)
+POST /mfa/setup
+  → 403 {"error": "csrf", "message": "Missing or wrong CSRF token."}
+
+POST /mfa/confirm {"code": "389716"}
+  → 200 {"message": "Save these codes somewhere safe; each works once.", "recovery_codes": ["QLP9P-FLSJ5", "ELUHX-9LJSE", "…"]}
+
+POST /login {"username": "ahmad", "password": "plum tractor violet 1987"}
+  → 200 {"mfa_required": true, "mfa_token": "W2YGE6YuBbip…"}
+
+POST /login/mfa {"mfa_token": "…", "code": "000000"}
+  → 401 {"error": "invalid_credentials", "message": "That code isn't right."}
+
+POST /login/mfa {"mfa_token": "…", "code": "888362"}
+  → 200 {"csrf_token": "C-D-Lrkq3p12…", "session": "66cadf6e5d29"}
+
+POST /password/forgot {"email": "ahmad@example.com"}
+  → 202 {"message": "If that address has an account, we've sent a reset link."}
+
+POST /password/forgot {"email": "someone@else.example"}
+  → 202 {"message": "If that address has an account, we've sent a reset link."}
+
+POST /password/reset {"token": "…", "new_password": "marble lantern quietly 2031"}
+  → 200 {"message": "Password changed. Sign in with the new password.", "ok": true}
+
+GET /me
+  → 401 {"error": "not_authenticated", "message": "Sign in first."}
+
+POST /password/reset {"token": "…", "new_password": "another good passphrase 9"}
+  → 400 {"error": "invalid_token", "message": "This reset link is invalid or has expired. Ask for a new one."}
+
+(five wrong passwords later)
+
+POST /login {"username": "ahmad", "password": "marble lantern quietly 2031"}
+  → 429  Retry-After: 1 {"error": "too_many_attempts", "message": "Too many failed attempts. Try again in 1 s.", "retry_after": 1}
